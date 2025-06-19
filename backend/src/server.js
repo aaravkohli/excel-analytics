@@ -44,6 +44,11 @@ app.use('/api/file', fileRoutes);
 app.use('/api/analysis', analysisRoutes);
 app.use('/api/user', userRoutes);
 
+// Add a friendly root route for API homepage
+app.get('/', (req, res) => {
+  res.send('Excel Analytics API is running!');
+});
+
 // Error handling
 app.use(errorHandler);
 
