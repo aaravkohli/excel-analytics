@@ -30,7 +30,10 @@ const limiter = rateLimit({
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'https://excel-analytics-two.vercel.app',
+  credentials: true
+}));
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(compression());
