@@ -1,5 +1,7 @@
 // src/utils/api.ts
 
+const API_BASE = import.meta.env.VITE_API_URL || "";
+
 // Helper to handle JSON responses and errors
 type FetchOptions = RequestInit & { token?: string };
 
@@ -33,7 +35,9 @@ async function apiFetch<T>(url: string, options: FetchOptions = {}): Promise<T> 
   // Always use token from localStorage unless explicitly provided
   const token = options.token || localStorage.getItem('token');
   if (token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(url, { ...options, headers });
+  // Prefix with API_BASE if not already absolute
+  const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
+  const res = await fetch(fullUrl, { ...options, headers });
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
     throw new Error(error.message || res.statusText);
@@ -77,7 +81,7 @@ export async function getStorageStats(token?: string) {
 
 // --- Download Analysis ---
 export async function downloadAnalysis(analysisId: string, token?: string) {
-  const res = await fetch(`/api/analysis/${analysisId}/export`, {
+  const res = await fetch(`${API_BASE}/api/analysis/${analysisId}/export`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) throw new Error('Failed to download analysis');
@@ -86,7 +90,7 @@ export async function downloadAnalysis(analysisId: string, token?: string) {
 
 // --- Auth ---
 export async function login(email: string, password: string) {
-  const res = await fetch('/api/auth/login', {
+  const res = await fetch(`${API_BASE}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -103,7 +107,7 @@ export async function uploadFile(file: File) {
   const formData = new FormData();
   formData.append('file', file);
   const token = localStorage.getItem('token');
-  const res = await fetch('/api/file/upload', {
+  const res = await fetch(`${API_BASE}/api/file/upload`, {
     method: 'POST',
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
@@ -137,7 +141,7 @@ export async function getAnalysisChart(analysisId: string, token?: string) {
 }
 
 export async function exportAnalysis(analysisId: string, token?: string) {
-  const res = await fetch(`/api/analysis/${analysisId}/export`, {
+  const res = await fetch(`${API_BASE}/api/analysis/${analysisId}/export`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) throw new Error('Failed to export analysis');
@@ -174,7 +178,7 @@ export async function register(name: string, email: string, password: string, ad
     body.applyForAdmin = true;
     body.adminReason = adminApplication.details;
   }
-  const res = await fetch('/api/auth/register', {
+  const res = await fetch(`${API_BASE}/api/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
