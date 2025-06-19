@@ -1,3 +1,4 @@
+// IMPORTANT: VITE_API_URL should NOT end with /api. It should be the backend root URL only (e.g., https://excel-analytics-backend-549g.onrender.com)
 // src/utils/api.ts
 
 const API_BASE = import.meta.env.VITE_API_URL || "";

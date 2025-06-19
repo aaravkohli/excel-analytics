@@ -52,6 +52,13 @@ export const register = async (req, res, next) => {
         const newUser = await User.create(userData);
         createSendToken(newUser, 201, res);
     } catch (error) {
+        if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+            // Duplicate email error
+            return res.status(400).json({
+                status: 'fail',
+                message: 'Email already exists. Please use a different email.'
+            });
+        }
         next(error);
     }
 };
