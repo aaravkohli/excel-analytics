@@ -62,6 +62,10 @@ const fileSchema = new mongoose.Schema({
     isPublic: {
         type: Boolean,
         default: false
+    },
+    fileUrl: {
+        type: String,
+        required: true
     }
 }, {
     timestamps: true

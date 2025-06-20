@@ -4,42 +4,21 @@ import { AppError } from '../middleware/error.middleware.js';
 import File from '../models/file.model.js';
 import { analyzeFileData, calculateStatistics } from '../utils/fileAnalysis.js';
 import { cleanupOldFiles } from '../utils/fileCleanup.js';
+import { storage } from '../utils/cloudinaryConfig';
 
 // Configure multer for file upload
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + '.xlsx');
-    }
-});
-
-const fileFilter = (req, file, cb) => {
-    // Accept Excel and CSV files
-    const allowedMimes = [
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'application/vnd.ms-excel',
-        'text/csv',
-        'application/csv',
-        'text/plain'
-    ];
-    const ext = file.originalname.split('.').pop()?.toLowerCase();
-    if (
-        allowedMimes.includes(file.mimetype) ||
-        (ext && ['xlsx', 'xls', 'csv'].includes(ext))
-    ) {
-        cb(null, true);
-    } else {
-        cb(new AppError('Not an Excel or CSV file! Please upload only Excel, XLSX, or CSV files.', 400), false);
-    }
-};
-
 const upload = multer({
-    storage: storage,
-    fileFilter: fileFilter,
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+    storage,
+    fileFilter: (req, file, cb) => {
+        if (
+            file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+            file.mimetype === 'application/vnd.ms-excel'
+        ) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only Excel files are allowed'), false);
+        }
+    }
 });
 
 export const uploadFile = [
@@ -47,22 +26,18 @@ export const uploadFile = [
     async (req, res, next) => {
         try {
             if (!req.file) {
-                return next(new AppError('Please upload a file!', 400));
+                return res.status(400).json({ status: 'fail', message: 'No file uploaded' });
             }
-
-            const file = await File.create({
-                filename: req.file.filename,
-                originalName: req.file.originalname,
-                path: req.file.path,
-                size: req.file.size,
+            // Save file metadata and Cloudinary URL to MongoDB
+            const fileDoc = await File.create({
+                filename: req.file.originalname,
+                fileUrl: req.file.path, // Cloudinary URL
+                uploadedBy: req.user._id,
                 mimeType: req.file.mimetype,
-                uploadedBy: req.user.id
+                size: req.file.size,
+                // Add other fields as needed
             });
-
-            res.status(201).json({
-                status: 'success',
-                data: { file }
-            });
+            res.status(201).json({ status: 'success', data: { file: fileDoc } });
         } catch (error) {
             next(error);
         }
