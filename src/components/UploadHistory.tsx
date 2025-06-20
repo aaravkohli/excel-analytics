@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { History, FileSpreadsheet, BarChart3, Download, Eye, Trash } from "lucide-react";
 import { toast } from "sonner";
-import { getUserFiles, getFileAnalyses, downloadAnalysis, getFilePreview } from "@/utils/api";
+import { getUserFiles, getFileAnalyses, downloadAnalysis, getFilePreview, deleteFile } from "@/utils/api";
 import { DataPreview } from "./DataPreview";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
@@ -199,10 +199,7 @@ export const UploadHistory = ({ userRole }: UploadHistoryProps = {}) => {
     try {
       for (let i = 0; i < ids.length; i++) {
         const fileId = ids[i];
-        await fetch(`/api/file/${fileId}`, {
-          method: 'DELETE',
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
+        await deleteFile(fileId, token);
         setBulkDeleteProgress(Math.round(((i + 1) / ids.length) * 100));
         if (i < ids.length - 1) await new Promise(res => setTimeout(res, 200));
       }

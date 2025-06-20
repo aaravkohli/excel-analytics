@@ -25,6 +25,7 @@ const Index = () => {
   const [uploadedData, setUploadedData] = useState<any[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [activeTab, setActiveTab] = useState("upload");
+  const [uploadedFileId, setUploadedFileId] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -80,7 +81,10 @@ const Index = () => {
 
   const handleFileUpload = async (data: any[], file: File) => {
     try {
-      await apiUploadFile(file);
+      const uploadRes = await apiUploadFile(file);
+      const fileId = uploadRes?.data?.file?._id;
+      if (!fileId) throw new Error("File ID not returned from server");
+      setUploadedFileId(fileId);
       toast.success("File uploaded to server!");
       // Optionally, refresh upload history here
     } catch (e: any) {
@@ -173,7 +177,7 @@ const Index = () => {
                     <Button onClick={() => { setShowDemoModal(true); setDemoModalContent('ai'); }} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">Unlock AI Insights</Button>
                   </div>
                 ) : (
-                  <ChartGenerator data={uploadedData} />
+                  <ChartGenerator data={uploadedData} fileId={uploadedFileId} />
                 )}
               </TabsContent>
 

@@ -12,9 +12,10 @@ import { createAnalysis, exportAnalysis } from "@/utils/api";
 
 interface ChartGeneratorProps {
   data: any[];
+  fileId?: string | null;
 }
 
-export const ChartGenerator = ({ data }: ChartGeneratorProps) => {
+export const ChartGenerator = ({ data, fileId }: ChartGeneratorProps) => {
   const [config, setConfig] = useState<ChartConfig>({
     xAxis: "",
     yAxis: "",
@@ -47,6 +48,11 @@ export const ChartGenerator = ({ data }: ChartGeneratorProps) => {
     setSaving(true);
     try {
       const token = localStorage.getItem('token') || undefined;
+      if (!fileId) {
+        toast.error("No fileId available. Please upload a file first.");
+        setSaving(false);
+        return;
+      }
       const body = {
         name: `Chart: ${config.chartType} (${config.xAxis} vs ${config.yAxis}${config.zAxis ? ' vs ' + config.zAxis : ''})`,
         type: 'visualization',
@@ -57,6 +63,7 @@ export const ChartGenerator = ({ data }: ChartGeneratorProps) => {
           ...(config.chartDimension === '3d' && config.zAxis ? { zAxis: { column: config.zAxis, label: config.zAxis } } : {})
         },
         data: data,
+        file: fileId,
       };
       const res = await createAnalysis(body, token);
       setAnalysisId(res.data.analysis._id);

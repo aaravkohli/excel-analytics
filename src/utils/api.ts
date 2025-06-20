@@ -189,4 +189,16 @@ export async function register(name: string, email: string, password: string, ad
     throw new Error(error.message || res.statusText);
   }
   return res.json(); // { status, token, data: { user } }
+}
+
+export async function deleteFile(fileId: string, token?: string) {
+  const res = await fetch(`${API_BASE}/api/file/${fileId}`, {
+    method: 'DELETE',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.message || res.statusText);
+  }
+  return res.json();
 } 
