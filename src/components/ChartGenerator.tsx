@@ -9,6 +9,8 @@ import { ChartControls, ChartConfig } from "@/components/chart/ChartControls";
 import { ChartSidebar } from "@/components/chart/ChartSidebar";
 import { AIInsights } from './AIInsights';
 import { createAnalysis, exportAnalysis } from "@/utils/api";
+import jsPDF from 'jspdf';
+// @ts-ignore: No types for jspdf in node_modules
 
 interface ChartGeneratorProps {
   data: any[];
@@ -107,6 +109,52 @@ export const ChartGenerator = ({ data, fileId }: ChartGeneratorProps) => {
     }
   };
 
+  // Download chart as PNG
+  const handleDownloadPNG = () => {
+    let canvas: HTMLCanvasElement | null = null;
+    if (chartRef.current) {
+      // Try to find a canvas inside the chartRef
+      canvas = chartRef.current.querySelector('canvas');
+    } else {
+      canvas = document.querySelector('canvas');
+    }
+    if (canvas) {
+      const url = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chart-${config.chartType}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('PNG download started!');
+    } else {
+      toast.error('Could not find chart to export as PNG.');
+    }
+  };
+
+  // Download chart as PDF
+  const handleDownloadPDF = () => {
+    let canvas: HTMLCanvasElement | null = null;
+    if (chartRef.current) {
+      canvas = chartRef.current.querySelector('canvas');
+    } else {
+      canvas = document.querySelector('canvas');
+    }
+    if (canvas) {
+      const url = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'landscape' });
+      const imgProps = pdf.getImageProperties(url);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      pdf.addImage(url, 'PNG', 0, 10, pdfWidth, pdfHeight - 20);
+      pdf.save(`chart-${config.chartType}.pdf`);
+      toast.success('PDF download started!');
+    } else {
+      toast.error('Could not find chart to export as PDF.');
+    }
+  };
+
   const handleConfigChange = (newConfig: ChartConfig) => {
     setConfig(newConfig);
   };
@@ -161,7 +209,13 @@ export const ChartGenerator = ({ data, fileId }: ChartGeneratorProps) => {
           {saving ? "Saving..." : "Save Chart"}
         </Button>
         <Button onClick={handleDownloadChart} disabled={downloading} variant="outline">
-          {downloading ? "Downloading..." : "Download/Export"}
+          {downloading ? "Downloading..." : "Download Excel"}
+        </Button>
+        <Button onClick={handleDownloadPNG} variant="secondary">
+          Download PNG
+        </Button>
+        <Button onClick={handleDownloadPDF} variant="destructive">
+          Download PDF
         </Button>
       </div>
 

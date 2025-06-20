@@ -322,8 +322,31 @@ export const exportAnalysis = async (req, res, next) => {
             return next(new AppError('No analysis found with that ID', 404));
         }
 
-        // Ensure results.data exists and is a non-empty array
-        if (!Array.isArray(analysis.results?.data) || analysis.results.data.length === 0) {
+        let exportData = analysis.results?.data;
+
+        // If data is Chart.js style (labels + datasets), convert to array of objects
+        if (exportData && typeof exportData === 'object' && exportData.labels && exportData.datasets) {
+            const { labels, datasets } = exportData;
+            // Each dataset may have its own label and data array
+            exportData = labels.map((label, i) => {
+                const row = { Label: label };
+                datasets.forEach(ds => {
+                    // For scatter/3d, ds.data may be array of objects {x, y, z}
+                    if (Array.isArray(ds.data)) {
+                        if (typeof ds.data[i] === 'object' && ds.data[i] !== null) {
+                            Object.entries(ds.data[i]).forEach(([k, v]) => {
+                                row[ds.label ? ds.label + ' ' + k : k] = v;
+                            });
+                        } else {
+                            row[ds.label || 'Value'] = ds.data[i];
+                        }
+                    }
+                });
+                return row;
+            });
+        }
+
+        if (!Array.isArray(exportData) || exportData.length === 0) {
             return res.status(400).json({
                 status: 'fail',
                 message: 'No analysis data available to export.'
@@ -332,7 +355,7 @@ export const exportAnalysis = async (req, res, next) => {
 
         // Create workbook with analysis results
         const workbook = XLSX.utils.book_new();
-        const worksheet = XLSX.utils.json_to_sheet(analysis.results.data);
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Analysis Results');
 
         // Set response headers for file download
