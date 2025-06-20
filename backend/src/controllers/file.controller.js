@@ -4,7 +4,7 @@ import { AppError } from '../middleware/error.middleware.js';
 import File from '../models/file.model.js';
 import { analyzeFileData, calculateStatistics } from '../utils/fileAnalysis.js';
 import { cleanupOldFiles } from '../utils/fileCleanup.js';
-import { storage } from '../utils/cloudinaryConfig';
+import { storage } from '../utils/cloudinaryConfig.js';
 
 // Configure multer for file upload
 const upload = multer({
