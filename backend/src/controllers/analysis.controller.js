@@ -322,6 +322,14 @@ export const exportAnalysis = async (req, res, next) => {
             return next(new AppError('No analysis found with that ID', 404));
         }
 
+        // Ensure results.data exists and is a non-empty array
+        if (!Array.isArray(analysis.results?.data) || analysis.results.data.length === 0) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'No analysis data available to export.'
+            });
+        }
+
         // Create workbook with analysis results
         const workbook = XLSX.utils.book_new();
         const worksheet = XLSX.utils.json_to_sheet(analysis.results.data);

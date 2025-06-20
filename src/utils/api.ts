@@ -197,8 +197,13 @@ export async function deleteFile(fileId: string, token?: string) {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) {
+    // Try to parse error JSON if available
     const error = await res.json().catch(() => ({}));
     throw new Error(error.message || res.statusText);
   }
-  return res.json();
+  // Only parse JSON if not 204 and content-type is JSON
+  if (res.status !== 204 && res.headers.get('content-type')?.includes('application/json')) {
+    return res.json();
+  }
+  return null;
 } 

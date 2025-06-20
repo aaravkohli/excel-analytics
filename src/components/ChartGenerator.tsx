@@ -83,7 +83,14 @@ export const ChartGenerator = ({ data, fileId }: ChartGeneratorProps) => {
     setDownloading(true);
     try {
       const token = localStorage.getItem('token') || undefined;
-      const blob = await exportAnalysis(analysisId, token);
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/analysis/${analysisId}/export`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || "Failed to export chart from backend.");
+      }
+      const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

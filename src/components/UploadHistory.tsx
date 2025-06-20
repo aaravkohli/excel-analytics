@@ -114,7 +114,14 @@ export const UploadHistory = ({ userRole }: UploadHistoryProps = {}) => {
   const handleDownloadCharts = async (analysisId: string) => {
     try {
       const token = localStorage.getItem('token') || undefined;
-      const blob = await downloadAnalysis(analysisId, token);
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/analysis/${analysisId}/export`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || 'Failed to download charts');
+      }
+      const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
