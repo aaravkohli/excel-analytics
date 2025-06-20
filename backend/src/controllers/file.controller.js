@@ -10,13 +10,17 @@ import { storage } from '../utils/cloudinaryConfig.js';
 const upload = multer({
     storage,
     fileFilter: (req, file, cb) => {
-        if (
-            file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-            file.mimetype === 'application/vnd.ms-excel'
-        ) {
+        const allowedMimes = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+            'application/vnd.ms-excel', // .xls
+            'text/csv', // .csv
+            'application/csv', // .csv (sometimes)
+            'text/plain' // .csv (sometimes)
+        ];
+        if (allowedMimes.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new Error('Only Excel files are allowed'), false);
+            cb(new Error('Only .xlsx, .xls, and .csv files are allowed'), false);
         }
     }
 });

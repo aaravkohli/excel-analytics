@@ -23,11 +23,7 @@ const fileSchema = new mongoose.Schema({
         type: String,
         required: [true, 'File must have a name']
     },
-    originalName: {
-        type: String,
-        required: true
-    },
-    path: {
+    fileUrl: {
         type: String,
         required: true
     },
@@ -62,10 +58,6 @@ const fileSchema = new mongoose.Schema({
     isPublic: {
         type: Boolean,
         default: false
-    },
-    fileUrl: {
-        type: String,
-        required: true
     }
 }, {
     timestamps: true
@@ -73,7 +65,7 @@ const fileSchema = new mongoose.Schema({
 
 // Indexes for better query performance
 fileSchema.index({ uploadedBy: 1, createdAt: -1 });
-fileSchema.index({ filename: 'text', originalName: 'text' });
+fileSchema.index({ filename: 'text' });
 
 // Virtual populate for analysis results
 fileSchema.virtual('analyses', {
