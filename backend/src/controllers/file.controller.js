@@ -5,6 +5,7 @@ import File from '../models/file.model.js';
 import { analyzeFileData, calculateStatistics } from '../utils/fileAnalysis.js';
 import { cleanupOldFiles } from '../utils/fileCleanup.js';
 import { storage } from '../utils/cloudinaryConfig.js';
+import axios from 'axios';
 
 // Configure multer for file upload
 const upload = multer({
@@ -97,24 +98,37 @@ export const getFilePreview = async (req, res, next) => {
     try {
         const file = await File.findById(req.params.id);
         if (!file) {
-            return next(new AppError('No file found with that ID', 404));
+            return res.status(404).json({ status: 'fail', message: 'File not found' });
         }
 
-        const workbook = XLSX.readFile(file.path);
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        // Download the file from Cloudinary
+        const response = await axios.get(file.fileUrl, { responseType: 'arraybuffer' });
+        const buffer = Buffer.from(response.data);
 
-        // Return first 100 rows for preview
-        const preview = data.slice(0, 100);
+        let headers = [];
+        let rows = [];
 
-        res.status(200).json({
-            status: 'success',
-            data: {
-                headers: data[0],
-                rows: preview.slice(1)
-            }
-        });
+        if (
+            file.mimeType === 'text/csv' ||
+            file.mimeType === 'application/csv' ||
+            file.mimeType === 'text/plain'
+        ) {
+            // Parse CSV
+            const csv = buffer.toString('utf-8');
+            const [headerLine, ...dataLines] = csv.split('\n');
+            headers = headerLine.split(',');
+            rows = dataLines.filter(line => line.trim()).map(line => line.split(','));
+        } else {
+            // Parse Excel
+            const workbook = XLSX.read(buffer, { type: 'buffer' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            headers = json[0];
+            rows = json.slice(1);
+        }
+
+        res.status(200).json({ data: { headers, rows } });
     } catch (error) {
         next(error);
     }
