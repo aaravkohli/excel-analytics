@@ -208,14 +208,11 @@ export const ChartGenerator = ({ data, fileId }: ChartGeneratorProps) => {
         <Button onClick={handleSaveChart} disabled={saving}>
           {saving ? "Saving..." : "Save Chart"}
         </Button>
-        <Button onClick={handleDownloadChart} disabled={downloading} variant="outline">
-          {downloading ? "Downloading..." : "Download Excel"}
+        <Button onClick={handleDownloadPNG} className="bg-blue-600 hover:bg-blue-700 text-white border-none" type="button">
+          Download as PNG
         </Button>
-        <Button onClick={handleDownloadPNG} variant="secondary">
-          Download PNG
-        </Button>
-        <Button onClick={handleDownloadPDF} variant="destructive">
-          Download PDF
+        <Button onClick={handleDownloadPDF} className="bg-purple-600 hover:bg-purple-700 text-white border-none" type="button">
+          Download as PDF
         </Button>
       </div>
 

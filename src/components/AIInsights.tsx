@@ -1,98 +1,13 @@
 import React, { useState } from 'react';
-import styled, { keyframes } from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button as StyledButton } from './ui/button';
-import { Badge as StyledBadge } from './ui/badge';
-import { Progress as StyledProgress } from './ui/progress';
-import { Loader2, Brain, TrendingUp, AlertTriangle, Lightbulb, CheckCircle } from 'lucide-react';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Progress } from './ui/progress';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
+import { Loader2, Brain, TrendingUp, AlertTriangle, Lightbulb, CheckCircle, Sparkles, ChevronDown, Database, Zap } from 'lucide-react';
 import { generateAIInsights, generateNaturalLanguageSummary, AIInsight } from '../utils/aiInsights';
-
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px);}
-  to { opacity: 1; transform: none;}
-`;
-
-const InsightsList = styled.ul`
-  margin-top: 1.5rem;
-  list-style: none;
-  padding: 0;
-  animation: ${fadeIn} 0.5s;
-`;
-
-const InsightItem = styled.li`
-  background: #f6f8fa;
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
-  padding: 1rem;
-  transition: box-shadow 0.2s;
-  &:hover {
-    box-shadow: 0 2px 8px rgba(80,80,200,0.08);
-  }
-`;
-
-const Badge = styled.span<{ color: string }>`
-  display: inline-block;
-  padding: 0.2em 0.7em;
-  border-radius: 0.5em;
-  font-size: 0.85em;
-  font-weight: 600;
-  background: ${({ color }) => color};
-  color: #fff;
-  margin-right: 0.5em;
-`;
-
-const Button = styled.button`
-  background: linear-gradient(90deg, #6366f1, #ec4899);
-  color: #fff;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 1rem;
-  transition: background 0.2s, transform 0.2s;
-  &:hover { background: linear-gradient(90deg, #4f46e5, #db2777); transform: scale(1.03);}
-  &:disabled { opacity: 0.6; cursor: not-allowed;}
-`;
-
-const ErrorMsg = styled.div`
-  color: #dc2626;
-  background: #fef2f2;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin-top: 1rem;
-`;
-
-const Loading = styled.div`
-  margin-top: 1rem;
-  color: #6366f1;
-  font-weight: 500;
-`;
-
-const DataTable = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 0.5em;
-  background: #f3f4f6;
-  border-radius: 4px;
-  overflow: hidden;
-  font-size: 0.95em;
-  th, td {
-    padding: 0.3em 0.7em;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: left;
-    word-break: break-word;
-    vertical-align: top;
-  }
-  th {
-    background: #e0e7ef;
-    font-weight: 600;
-  }
-  tr:last-child td {
-    border-bottom: none;
-  }
-`;
 
 export interface AIInsightsProps {
   data: any[];
@@ -119,79 +34,114 @@ const getInsightIcon = (type: string) => {
 const getInsightColor = (type: string) => {
   switch (type) {
     case 'pattern':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-blue-100 text-blue-800 border-blue-200';
     case 'correlation':
-      return 'bg-purple-100 text-purple-800';
+      return 'bg-purple-100 text-purple-800 border-purple-200';
     case 'anomaly':
-      return 'bg-red-100 text-red-800';
+      return 'bg-red-100 text-red-800 border-red-200';
     case 'recommendation':
-      return 'bg-green-100 text-green-800';
+      return 'bg-green-100 text-green-800 border-green-200';
     case 'quality':
-      return 'bg-yellow-100 text-yellow-800';
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-gray-100 text-gray-800 border-gray-200';
   }
+};
+
+const getConfidenceColor = (confidence: number) => {
+  if (confidence >= 0.8) return 'bg-green-500';
+  if (confidence >= 0.6) return 'bg-yellow-500';
+  return 'bg-red-500';
 };
 
 function renderSupportingData(data: any) {
   if (!data) return null;
-  // Array of objects
+  
+  // Handle arrays of objects
   if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object') {
-    const columns = Array.from(
-      new Set(data.flatMap((row: any) => Object.keys(row)))
-    );
+    const columns = Array.from(new Set(data.flatMap((row: any) => Object.keys(row))));
     return (
-      <DataTable>
-        <thead>
-          <tr>
-            {columns.map(col => <th key={col}>{col}</th>)}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, i) => (
-            <tr key={i}>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm border-collapse bg-gray-50 rounded-lg overflow-hidden">
+          <thead>
+            <tr className="bg-gray-100">
               {columns.map(col => (
-                <td key={col}>
-                  {typeof row[col] === 'object'
-                    ? JSON.stringify(row[col])
-                    : String(row[col])}
-                </td>
+                <th key={col} className="px-3 py-2 text-left font-medium text-gray-700 border-b">
+                  {col}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </DataTable>
+          </thead>
+          <tbody>
+            {data.slice(0, 5).map((row, i) => (
+              <tr key={i} className="hover:bg-gray-50 transition-colors">
+                {columns.map(col => (
+                  <td key={col} className="px-3 py-2 border-b border-gray-200">
+                    {typeof row[col] === 'object' ? JSON.stringify(row[col]) : String(row[col])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+            {data.length > 5 && (
+              <tr>
+                <td colSpan={columns.length} className="px-3 py-2 text-center text-gray-500 italic">
+                  ... and {data.length - 5} more rows
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     );
   }
-  // Array of primitives
+  
+  // Handle arrays of primitives
   if (Array.isArray(data)) {
-    return <div>{data.join(', ')}</div>;
+    return (
+      <div className="bg-gray-50 rounded-lg p-3">
+        <div className="flex flex-wrap gap-2">
+          {data.slice(0, 10).map((item, i) => (
+            <span key={i} className="px-2 py-1 bg-white rounded text-sm border">
+              {String(item)}
+            </span>
+          ))}
+          {data.length > 10 && (
+            <span className="px-2 py-1 text-gray-500 text-sm">
+              +{data.length - 10} more
+            </span>
+          )}
+        </div>
+      </div>
+    );
   }
-  // Object
+  
+  // Handle objects
   if (typeof data === 'object') {
     return (
-      <DataTable>
-        <tbody>
-          {Object.entries(data).map(([k, v]) => (
-            <tr key={k}>
-              <th>{k}</th>
-              <td>
-                {Array.isArray(v)
-                  ? v.length > 0 && typeof v[0] === 'object'
-                    ? renderSupportingData(v)
-                    : v.join(', ')
-                  : typeof v === 'object'
+      <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+        {Object.entries(data).map(([k, v]) => (
+          <div key={k} className="flex justify-between py-1 border-b border-gray-200 last:border-b-0">
+            <span className="font-medium text-gray-700">{k}:</span>
+            <span className="text-gray-600">
+              {Array.isArray(v) 
+                ? `[${v.length} items]`
+                : typeof v === 'object' 
                   ? JSON.stringify(v)
-                  : String(v)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </DataTable>
+                  : String(v)
+              }
+            </span>
+          </div>
+        ))}
+      </div>
     );
   }
-  // Fallback
-  return <pre style={{ fontSize: '0.95em' }}>{String(data)}</pre>;
+  
+  // Fallback for primitives
+  return (
+    <div className="bg-gray-50 rounded-lg p-3">
+      <code className="text-sm text-gray-700">{String(data)}</code>
+    </div>
+  );
 }
 
 export const AIInsights: React.FC<AIInsightsProps> = ({
@@ -203,20 +153,18 @@ export const AIInsights: React.FC<AIInsightsProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Only generate on button click
   const handleGenerate = async () => {
     setError('');
     setInsights([]);
     setSummary('');
     setLoading(true);
+    
     try {
-      const [
-        aiInsights,
-        naturalSummary
-      ] = await Promise.all([
+      const [aiInsights, naturalSummary] = await Promise.all([
         generateAIInsights(data, analysisResults),
         generateNaturalLanguageSummary(analysisResults)
       ]);
+      
       setInsights(aiInsights);
       setSummary(naturalSummary);
     } catch (err: any) {
@@ -228,17 +176,31 @@ export const AIInsights: React.FC<AIInsightsProps> = ({
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-indigo-50">
+        <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-lg">
           <CardTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5" />
             AI Insights
           </CardTitle>
-          <CardDescription>Generating intelligent insights from your data...</CardDescription>
+          <CardDescription className="text-purple-100">
+            Generating intelligent insights from your data...
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
+        <CardContent className="p-8">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="relative">
+              <Loader2 className="h-12 w-12 animate-spin text-purple-600" />
+              <div className="absolute inset-0 h-12 w-12 rounded-full border-2 border-purple-200 animate-pulse"></div>
+            </div>
+            <div className="text-center space-y-2">
+              <p className="text-lg font-medium text-gray-700">Analyzing your data...</p>
+              <p className="text-sm text-gray-500">This may take a few moments</p>
+            </div>
+            <div className="w-full max-w-xs">
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full animate-pulse"></div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -247,19 +209,22 @@ export const AIInsights: React.FC<AIInsightsProps> = ({
 
   if (error) {
     return (
-      <Card>
+      <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            AI Insights
+          <CardTitle className="flex items-center gap-2 text-red-600">
+            <AlertTriangle className="h-5 w-5" />
+            Error
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-4">
-            <p className="text-red-600 mb-4">{error}</p>
-            <StyledButton onClick={handleGenerate} variant="outline">
+          <div className="text-center py-6 space-y-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-700">{error}</p>
+            </div>
+            <Button onClick={handleGenerate} variant="outline" className="hover:bg-red-50">
+              <Zap className="h-4 w-4 mr-2" />
               Try Again
-            </StyledButton>
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -267,54 +232,152 @@ export const AIInsights: React.FC<AIInsightsProps> = ({
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto bg-white rounded-xl shadow-lg p-6 lg:p-10 mt-0">
-      <h2 className="text-xl font-bold mb-2">AI-Powered Insights</h2>
-      <p className="mb-4">Generate AI-powered insights from your data visualization to help you understand patterns and trends.</p>
-      <Button onClick={handleGenerate} disabled={loading}>
-        {loading ? 'Generating Insights...' : 'Generate Insights'}
-      </Button>
-      {loading && <Loading>Analyzing your data...</Loading>}
-      {error && <ErrorMsg>{error}</ErrorMsg>}
-      {summary && (
-        <div style={{ marginTop: 24, marginBottom: 16 }}>
-          <h3 style={{ fontWeight: 600, color: '#6366f1', marginBottom: 8 }}>AI Summary</h3>
-          <ReactMarkdown>{summary}</ReactMarkdown>
+    <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-indigo-50">
+      <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-t-lg">
+        <CardTitle className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5" />
+          AI Insights
+        </CardTitle>
+        <CardDescription className="text-purple-100">
+          Generate AI-powered insights from your data visualization
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-6 space-y-6">
+        {/* Generate Button */}
+        <div className="text-center">
+          <Button
+            onClick={handleGenerate}
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+            size="lg"
+            disabled={loading}
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            {loading ? "Generating Insights..." : "Generate AI Insights"}
+          </Button>
+          {!summary && !insights.length && (
+            <p className="text-sm text-gray-500 mt-2">
+              Click to analyze patterns, trends, and correlations in your data
+            </p>
+          )}
         </div>
-      )}
-      {insights.length > 0 && (
-        <InsightsList>
-          {insights.map((insight, idx) => (
-            <InsightItem key={idx}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                <Badge color={getInsightColor(insight.type)}>{insight.type}</Badge>
-                <strong style={{ fontSize: '1.1em' }}>{insight.title}</strong>
-              </div>
-              <ReactMarkdown>{insight.description}</ReactMarkdown>
-              {insight.businessImpact && (
-                <div style={{ marginTop: 8, color: '#2563eb', fontWeight: 500 }}>
-                  <span style={{ fontWeight: 700 }}>Business Impact: </span>
-                  {insight.businessImpact}
+
+        {/* AI Summary */}
+        {summary && (
+          <div className="animate-fade-in">
+            <Card className="border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-blue-800">
+                  <Brain className="h-5 w-5" />
+                  AI Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="prose prose-sm max-w-none">
+                <div className="bg-white rounded-lg p-4 border border-blue-100">
+                  <div className="text-gray-700 leading-relaxed">
+                    <ReactMarkdown>
+                      {summary}
+                    </ReactMarkdown>
+                  </div>
                 </div>
-              )}
-              <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 mb-1">
-                <div
-                  className="h-2.5 rounded-full transition-all duration-500 bg-green-500"
-                  style={{ width: `${Math.round(insight.confidence * 100)}%` }}
-                ></div>
-              </div>
-              <div style={{ fontSize: '0.9em', color: '#6b7280', marginTop: 2 }}>
-                Confidence: {Math.round(insight.confidence * 100)}%
-              </div>
-              {insight.data && (
-                <details style={{ marginTop: 8 }}>
-                  <summary style={{ cursor: 'pointer', color: '#6366f1' }}>Supporting Data</summary>
-                  {renderSupportingData(insight.data)}
-                </details>
-              )}
-            </InsightItem>
-          ))}
-        </InsightsList>
-      )}
-    </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Insights List */}
+        {insights.length > 0 && (
+          <div className="space-y-4 animate-fade-in">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Detailed Insights ({insights.length})
+              </h3>
+              <Badge variant="outline" className="bg-white">
+                AI Powered
+              </Badge>
+            </div>
+            
+            <Accordion type="single" collapsible className="space-y-3">
+              {insights.map((insight, idx) => (
+                <AccordionItem 
+                  key={idx} 
+                  value={`insight-${idx}`}
+                  className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow duration-200"
+                >
+                  <AccordionTrigger className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200">
+                    <div className="flex items-center gap-3 text-left">
+                      <div className={`p-2 rounded-lg ${getInsightColor(insight.type)} border`}>
+                        {getInsightIcon(insight.type)}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline" className={getInsightColor(insight.type)}>
+                            {insight.type}
+                          </Badge>
+                          <span className="text-sm font-medium text-gray-800">
+                            {insight.title}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-gray-200 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full transition-all duration-500 ${getConfidenceColor(insight.confidence)}`}
+                              style={{ width: `${Math.round(insight.confidence * 100)}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-gray-500 font-medium">
+                            {Math.round(insight.confidence * 100)}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4 pb-4">
+                    <div className="space-y-4">
+                      {/* Description */}
+                      <div className="prose prose-sm max-w-none">
+                        <div className="text-gray-700 leading-relaxed">
+                          <ReactMarkdown>
+                            {insight.description}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+
+                      {/* Business Impact */}
+                      {insight.businessImpact && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                          <div className="flex items-start gap-2">
+                            <TrendingUp className="h-4 w-4 text-green-600 mt-0.5" />
+                            <div>
+                              <span className="font-medium text-green-800">Business Impact:</span>
+                              <p className="text-green-700 mt-1">{insight.businessImpact}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Supporting Data */}
+                      {insight.data && (
+                        <Collapsible>
+                          <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors">
+                            <Database className="h-4 w-4" />
+                            Supporting Data
+                            <ChevronDown className="h-4 w-4" />
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="mt-3">
+                            <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                              {renderSupportingData(insight.data)}
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
-}; 
+};
