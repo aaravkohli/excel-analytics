@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Chart2D } from "@/components/Chart2D";
 import { Chart3D } from "@/components/Chart3D";
 import { ChartControls, ChartConfig } from "@/components/chart/ChartControls";
-import { ChartSidebar } from "@/components/chart/ChartSidebar"; 
+import { ChartSidebar } from "@/components/chart/ChartSidebar";
 import { AIInsights } from './AIInsights';
 import { createAnalysis, exportAnalysis } from "@/utils/api";
 import jsPDF from 'jspdf';
@@ -202,76 +202,86 @@ export const ChartGenerator = ({ data, fileId }: ChartGeneratorProps) => {
         </p>
       </div>
 
+      {/* Chart Controls */}
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white shadow-md rounded-xl p-4">
           <ChartControls data={data} onConfigChange={handleConfigChange} />
         </div>
       </div>
-      <div className="flex gap-2 mb-4">
-        <Button onClick={handleSaveChart} disabled={saving}>
-          {saving ? "Saving..." : "Save Chart"}
-        </Button>
-        <Button onClick={handleDownloadPNG} className="bg-blue-600 hover:bg-blue-700 text-white border-none" type="button">
-          Download as PNG
-        </Button>
-        <Button onClick={handleDownloadPDF} className="bg-purple-600 hover:bg-purple-700 text-white border-none" type="button">
-          Download as PDF
-        </Button>
+      {/* Download Buttons */}
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex gap-2 mb-4">
+          <Button onClick={handleSaveChart} disabled={saving}>
+            {saving ? "Saving..." : "Save Chart"}
+          </Button>
+          <Button
+            onClick={handleDownloadPNG}
+            className="bg-blue-600 hover:bg-blue-700 text-white border-none"
+            type="button"
+          >
+            Download as PNG
+          </Button>
+          <Button
+            onClick={handleDownloadPDF}
+            className="bg-purple-600 hover:bg-purple-700 text-white border-none"
+            type="button"
+          >
+            Download as PDF
+          </Button>
+        </div>
       </div>
+
 
       {/* Chart Display */}
       {config.xAxis && config.yAxis && (
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6">
-          <div className="xl:col-span-3">
-            <Card className="border-0 shadow-xl overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-gray-900 to-blue-900 text-white p-4">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <CardTitle className="flex items-center gap-3 capitalize text-lg">
-                    {is3D ? <Box className="h-6 w-6" /> : <BarChart3 className="h-6 w-6" />}
-                    {config.chartType.replace('-', ' ')} Chart
-                  </CardTitle>
-                  <Button
-                    onClick={handleDownloadChart}
-                    variant="outline"
-                    size="sm"
-                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                  >
-                    Download
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div ref={chartRef}>
-                  {is3D ? (
-                    <Chart3D
+        <div className="space-y-6">
+          {/* Chart Card */}
+          <Card className="border-0 shadow-xl overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-gray-900 to-blue-900 text-white p-4">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <CardTitle className="flex items-center gap-3 capitalize text-lg">
+                  {is3D ? <Box className="h-6 w-6" /> : <BarChart3 className="h-6 w-6" />}
+                  {config.chartType.replace('-', ' ')} Chart
+                </CardTitle>
+                <Button
+                  onClick={handleDownloadChart}
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                >
+                  Download
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div ref={chartRef}>
+                {is3D ? (
+                  <Chart3D
+                    data={data}
+                    xAxis={config.xAxis}
+                    yAxis={config.yAxis}
+                    zAxis={config.zAxis}
+                    chartType={config.chartType as any}
+                  />
+                ) : (
+                  <div className="p-4 lg:p-6">
+                    <Chart2D
                       data={data}
                       xAxis={config.xAxis}
                       yAxis={config.yAxis}
-                      zAxis={config.zAxis}
                       chartType={config.chartType as any}
                     />
-                  ) : (
-                    <div className="p-4 lg:p-6">
-                      <Chart2D
-                        data={data}
-                        xAxis={config.xAxis}
-                        yAxis={config.yAxis}
-                        chartType={config.chartType as any}
-                      />
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* AI Insights Panel */}
-          <div className="xl:col-span-1">
-            <AIInsights
-              data={data}
-              analysisResults={analysisResults}
-            />
-          </div>
+          {/* AI Insights below chart */}
+          <AIInsights
+            data={data}
+            analysisResults={analysisResults}
+          />
         </div>
       )}
     </div>
