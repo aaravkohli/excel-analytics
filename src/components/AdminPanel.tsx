@@ -259,33 +259,29 @@ export const AdminPanel = () => {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge className={getStatusColor(user.active)}>
-                              {user.active ? 'active' : 'suspended'}
-                            </Badge>
+                          <Badge className={getStatusColor(Boolean(user.active))}>
+                            {user.active === false ? 'suspended' : 'active'}
+                          </Badge>
                           </TableCell>
                           <TableCell>{user.role}</TableCell>
                           <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                           <TableCell>
                             <div className="flex gap-2">
-                              {user.active ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleUserAction(user._id, 'suspended')}
-                                >
-                                  <Ban className="h-3 w-3" />
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleUserAction(user._id, 'activated')}
-                                >
-                                  <CheckCircle className="h-3 w-3" />
-                                </Button>
-                              )}
+                              <Button
+                                title={user.active ? 'Suspend user' : 'Activate user'}
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUserAction(user._id, user.active ? 'suspended' : 'activated')}
+                              >
+                                {user.active ? (
+                                  <Ban className="h-3 w-3 text-red-600" />
+                                ) : (
+                                  <CheckCircle className="h-3 w-3 text-green-600" />
+                                )}
+                              </Button>
                             </div>
                           </TableCell>
+
                         </TableRow>
                       ))}
                     </TableBody>
