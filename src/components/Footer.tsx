@@ -8,7 +8,7 @@ export const Footer = () => {
         <Card className="border-0 bg-white/50 backdrop-blur-sm shadow-lg">
           <div className="p-6 text-center">
             <p className="text-gray-700 font-medium">
-              © 2025 Aarav Kohli. All rights reserved.
+              © 2025 Excel Analytics. All rights reserved.
             </p>
             <p className="text-sm text-gray-500 mt-2">
               Excel Analytics Platform - Transform your data into insights

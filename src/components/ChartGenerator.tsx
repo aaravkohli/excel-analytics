@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Chart2D } from "@/components/Chart2D";
 import { Chart3D } from "@/components/Chart3D";
 import { ChartControls, ChartConfig } from "@/components/chart/ChartControls";
-import { ChartSidebar } from "@/components/chart/ChartSidebar";
+import { ChartSidebar } from "@/components/chart/ChartSidebar"; 
 import { AIInsights } from './AIInsights';
 import { createAnalysis, exportAnalysis } from "@/utils/api";
 import jsPDF from 'jspdf';
@@ -202,8 +202,11 @@ export const ChartGenerator = ({ data, fileId }: ChartGeneratorProps) => {
         </p>
       </div>
 
-      {/* Chart Controls */}
-      <ChartControls data={data} onConfigChange={handleConfigChange} />
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white shadow-md rounded-xl p-4">
+          <ChartControls data={data} onConfigChange={handleConfigChange} />
+        </div>
+      </div>
       <div className="flex gap-2 mb-4">
         <Button onClick={handleSaveChart} disabled={saving}>
           {saving ? "Saving..." : "Save Chart"}
